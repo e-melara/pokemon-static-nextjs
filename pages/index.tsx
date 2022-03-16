@@ -1,19 +1,43 @@
-import { ReactElement } from "react"
-import { Layout } from "../components/layouts"
-import { NavBar } from "../components/ui"
+import { GetStaticProps, NextPage } from "next"
+import { Grid } from "@nextui-org/react"
 
-export default function HomePage({ }) {
-  return (
-    <>
-      <NavBar />
-    </>
-  )
+import { pokemonApi } from "../api"
+import { Layout } from "../components/layouts"
+import { PokemonCard } from "../components/pokemons";
+
+import { PokemonListResponse, SmallPokemon } from "../interfaces"
+
+interface HomeProps {
+  pokemons: SmallPokemon[]
 }
 
-HomePage.getLayout = function getLayout(page: ReactElement) {
+const HomePage: NextPage<HomeProps> = ({ pokemons }) => {
+  const cards = pokemons.map(function(pokemon) {
+    return <PokemonCard pokemon={pokemon} />
+  })
   return (
-    <Layout>
-      {page}
+    <Layout title="Pokeder">
+      <Grid.Container gap={2} justify='flex-start'>
+        {cards}
+      </Grid.Container>
     </Layout>
   )
 }
+
+export const getStaticProps: GetStaticProps = async (_) => {
+  const { results }: PokemonListResponse = await pokemonApi.get('/pokemon?limit=151')
+  return {
+    props: {
+      pokemons: results.map<SmallPokemon>(function(pokemon, key) {
+        const id = key + 1
+        return {
+          ...pokemon,
+          id,
+          image: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/dream-world/' + id + '.svg'
+        }
+      })
+    }
+  }
+}
+
+export default HomePage
