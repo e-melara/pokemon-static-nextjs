@@ -13,7 +13,7 @@ interface HomeProps {
 
 const HomePage: NextPage<HomeProps> = ({ pokemons }) => {
   const cards = pokemons.map(function(pokemon) {
-    return <PokemonCard pokemon={pokemon} />
+    return <PokemonCard pokemon={pokemon} key={pokemon.id} />
   })
   return (
     <Layout title="Pokeder">
