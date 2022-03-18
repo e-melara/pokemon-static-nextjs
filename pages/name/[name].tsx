@@ -7,14 +7,14 @@ import confetti from "canvas-confetti";
 
 import { pokemonApi } from "../../api";
 import { Layout } from "../../components/layouts";
-import { Pokemon } from "../../interfaces";
+import { Pokemon, PokemonListResponse, SmallPokemon } from "../../interfaces";
 import { localFavorites } from "../../utils";
 
 interface Props {
   pokemon: Pokemon
 }
 
-const PokemonPage: NextPage<Props> = ({ pokemon }) => {
+const PokemonByNamePage: NextPage<Props> = ({ pokemon }) => {
   const [isInFavorited, setIsInFavorited] = useState(false)
   const handlerClick = () => {
     localFavorites.toggleFavorites(pokemon.id)
@@ -39,7 +39,7 @@ const PokemonPage: NextPage<Props> = ({ pokemon }) => {
   }, [pokemon.id])
 
   return (
-    <Layout title={pokemon.name}>
+    <Layout title={`${pokemon.name}`}>
       <Grid.Container css={{ marginTop: '5px' }} gap={2} >
         <Grid xs={12} sm={4}>
           <Card hoverable css={{ padding: '30px' }}>
@@ -98,19 +98,20 @@ const PokemonPage: NextPage<Props> = ({ pokemon }) => {
   )
 }
 
-export const getStaticPaths: GetStaticPaths = (_) => {
-  const pokemons = Array.from({ length: 151 }, (_, i) => i + 1)
+export const getStaticPaths: GetStaticPaths = async (_) => {
+  const { results }: PokemonListResponse = await pokemonApi.get('/pokemon?limit=151')
 
   return {
-    paths: pokemons.map(function(index) {
-      return { params: { id: index.toString() } }
-    }), fallback: false
+    paths: results.map(function(pokemon: SmallPokemon) {
+      return { params: { name: pokemon.name } }
+    }),
+    fallback: false
   }
 }
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
-  const { id } = params as { id: string }
-  const pokemon = await pokemonApi.get<Pokemon>('/pokemon/' + id)
+  const { name } = params as { name: string }
+  const pokemon = await pokemonApi.get<Pokemon>(`/pokemon/${name}`)
 
   return {
     props: {
@@ -119,4 +120,4 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   }
 }
 
-export default PokemonPage
+export default PokemonByNamePage
